@@ -1,0 +1,82 @@
+#!/bin/sh
+
+# ensure bin is setup
+[ ! -d "$HOME/bin" ] && mkdir -p "$HOME/bin"
+
+# add all sub directories named "bin" in $HOME/bin to the path
+exportBin()
+{
+  [ ! -d "$HOME/bin" ] && mkdir -p "$HOME/bin"
+  for dir in $(find $HOME/bin -type d -name bin)
+  do
+    export PATH="${PATH}${PATH+:}${dir}"
+  done
+}
+exportBin
+
+# if UPDATE is unset, set it to false
+UPDATE="${UPDATE:-"false"}"
+
+# install fzf if not installed
+(
+  set -e
+  pname="fzf"
+  version="$(curl -L https://github.com/junegunn/fzf/releases/latest |
+    grep "<title>" | sed -e "s/.*\([0-9]\.[0-9]*\.[0-9]\).*/\1/g")"
+  url="https://github.com/junegunn/fzf/releases/download/"
+  url="${url}${version}/fzf-${version}-linux_amd64.tar.gz"
+  curl -L "$url" | tar Ozxvf - $pname >| $HOME/bin/$pname
+  chmod 755 $HOME/bin/$pname
+  set +e
+)
+
+# install bat if not installed
+(
+  set -e
+  pname="bat"
+  version="$(curl -L https://github.com/sharkdp/bat/releases/latest |
+    grep "<title>" | sed -e "s/.*\([0-9]\.[0-9]*\.[0-9]\).*/\1/g")"
+  url="https://github.com/sharkdp/bat/releases/download/"
+  url="${url}v${version}/bat-v${version}-x86_64-unknown-linux-gnu.tar.gz"
+  curl -L "$url" |
+    tar Ozxvf - bat-v${version}-x86_64-unknown-linux-gnu/$pname \
+      >| $HOME/bin/$pname
+  chmod 755 $HOME/bin/$pname
+  set +e
+)
+
+# install neovim if not installed
+
+(
+  set -e
+  pname="nvim"
+  version="$(curl -L https://github.com/neovim/neovim/releases/latest |
+    grep "<title>" | sed -e "s/.*\([0-9]\.[0-9]*\.[0-9]\).*/\1/g")"
+  url="https://github.com/neovim/neovim/releases/download/"
+  url="${url}v${version}/nvim-linux64.tar.gz"
+  cd $HOME/bin
+  curl -L "$url" |
+    tar zxvf -
+  set +e
+)
+
+# install exa if not installed
+(
+  set -e
+  pname="exa"
+  version="$(curl -L https://github.com/ogham/exa/releases/latest |
+    grep "<title>" | sed -e "s/.*\([0-9]\.[0-9]*\.[0-9]\).*/\1/g")"
+  url="https://github.com/ogham/exa/releases/download/v${version}/"
+  url="${url}exa-linux-x86_64-v${version}.zip"
+  cd $HOME/bin
+  tmpfile="exa-tmp-$$.zip"
+  echo $url
+  curl -L "$url" >| ./$tmpfile
+  unzip $tmpfile
+  mv "bin/${pname}" .
+  rm -rf ./bin
+  rm -rf ./completions
+  rm -rf ./man
+  rm -rf ./$tmpfile
+  set +e
+)

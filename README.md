@@ -1,2 +1,1 @@
-Random pieces of code:
-Python/Java/Shell
+Random stuff
